@@ -3,8 +3,6 @@
 > **Materia:** Seguridad de Sistemas Operativos  
 > **Instructor:** Juan Alexander Ramírez  
 > **Autores:** Neury Montero Mejia & Miguel Ramirez Meli
-> **Fecha:** 15-3-2026
-
 ---
 
 ## 📋 Tabla de Contenidos
