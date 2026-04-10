@@ -3,8 +3,6 @@
 > **Materia:** Seguridad de Sistemas Operativos  
 > **Instructor:** Juan Alexander Ramírez  
 > **Autores:** Neury Montero Mejia & Miguel Ramirez Meli
-> **Institución:** Instituto Tecnológico de Las Américas (ITLA)  
-> **Fecha:** 29-3-2026
 
 ---
 
