@@ -8,7 +8,7 @@
 |---|---|
 | **Materia** | Seguridad de Sistemas Operativos |
 | **Instructor** | Juan Alexander Ramírez |
-| **Estudiante** | Miguel Ramirez Meli |
+| **Autores** | Neury Montero Mejia & Miguel Ramirez Meli |
 | **Fecha** | 08-02-2026 |
 
 </div>
