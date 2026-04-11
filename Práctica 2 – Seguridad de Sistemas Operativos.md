@@ -1,3 +1,4 @@
+[Practica2_Seguridad.md](https://github.com/user-attachments/files/26647736/Practica2_Seguridad.md)
 <div align="center">
 
 # 🔐 Práctica 2 – Seguridad de Sistemas Operativos
@@ -22,9 +23,18 @@
 
 ---
 
+> ### 🗺️ Leyenda
+> | Ícono | Significado |
+> |---|---|
+> | 🖥️ **SERVIDOR** | Acción realizada en Windows Server 2022 (Controlador de Dominio) |
+> | 💻 **CLIENTE** | Acción realizada en Windows 10 Pro (equipo unido al dominio) |
+
+---
+
 ## 🔒 Punto A – GPO BitLocker: cifrado de disco con PIN y respaldo en Active Directory
 
 ### Parte 1 – Instalar la característica BitLocker
+> 🖥️ **SERVIDOR**
 
 1. En el **Administrador del servidor**, hacer clic en **Administrar → Agregar roles y características**.
 
@@ -38,7 +48,10 @@
 
 6. Esperar a que finalice la instalación.
 
+---
+
 ### Parte 2 – Crear y configurar la GPO de BitLocker
+> 🖥️ **SERVIDOR**
 
 7. Ir a **Herramientas → Administración de directivas de grupo**.
 
@@ -66,16 +79,26 @@
 
 15. Hacer doble clic en **"Configurar el perfil de validación de plataforma del TPM"** → seleccionar **Habilitada** → **Aplicar → Aceptar**.
 
-16. En la sección raíz de **Cifrado de unidad BitLocker**, habilitar también:
+16. Volver a la sección raíz de **Cifrado de unidad BitLocker** (un nivel arriba), habilitar también:
     **"Almacenar información de recuperación de BitLocker en los Servicios de dominio de Active Directory"** → **Habilitada** → **Aplicar → Aceptar**.
 
+---
+
 ### Parte 3 – Aplicar la GPO y cifrar el disco
+
+**Paso 17 – Forzar la aplicación de la GPO**
+> 💻 **CLIENTE**
 
 17. Abrir el **Símbolo del sistema (CMD)** como Administrador y ejecutar:
     ```
     gpupdate /force
     ```
     Esperar a que se apliquen los cambios.
+
+---
+
+**Pasos 18 al 26 – Preparar la partición y activar BitLocker**
+> 💻 **CLIENTE**
 
 18. En el **Explorador de archivos**, crear una carpeta en el escritorio llamada `Key recovery` para guardar la clave de recuperación.
 
@@ -102,6 +125,7 @@
 ## 🚫 Punto B – GPO NTLM: bloquear autenticación NTLM en el dominio
 
 ### Parte 1 – Crear la GPO NTLM
+> 🖥️ **SERVIDOR**
 
 1. En el **Administrador del servidor**, hacer clic en **Herramientas → Administración de directivas de grupo**.
 
@@ -111,7 +135,10 @@
 
 4. Hacer clic derecho sobre la GPO recién creada → **Editar**.
 
+---
+
 ### Parte 2 – Configurar las directivas NTLM
+> 🖥️ **SERVIDOR**
 
 5. Navegar por el árbol hasta:
     ```
@@ -133,13 +160,23 @@
 
 > ⚠️ **Nota:** La opción "Denegar todo" bloquea todos los intentos de autenticación NTLM en el dominio, previniendo accesos no autorizados a través del tráfico de red.
 
+---
+
 ### Parte 3 – Aplicar la GPO
+
+**Paso 10 – Forzar la actualización**
+> 💻 **CLIENTE**
 
 10. Abrir el **Símbolo del sistema (CMD)** como Administrador y ejecutar:
     ```
     gpupdate /force
     ```
     Esperar a que se complete la actualización.
+
+---
+
+**Paso 11 – Verificar el despliegue**
+> 🖥️ **SERVIDOR**
 
 11. En la consola de **Administración de directivas de grupo**, hacer clic derecho sobre **GPO NTLM** → **Actualizar** para confirmar que la directiva está habilitada y desplegada.
 
