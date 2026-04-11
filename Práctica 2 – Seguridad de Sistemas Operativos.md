@@ -1,4 +1,3 @@
-[Practica2_Seguridad.md](https://github.com/user-attachments/files/26647736/Practica2_Seguridad.md)
 <div align="center">
 
 # 🔐 Práctica 2 – Seguridad de Sistemas Operativos
@@ -102,7 +101,12 @@
 
 18. En el **Explorador de archivos**, crear una carpeta en el escritorio llamada `Key recovery` para guardar la clave de recuperación.
 
-19. Ir a **Este equipo**, abrir **Administración de discos** (clic derecho en el disco C → **Reducir volumen**), establecer el tamaño deseado para la nueva partición.
+19. Abrir **Administración de discos** usando cualquiera de estas formas:
+    - **Opción 1 (más fácil):** Clic derecho en el botón de **Inicio (Windows)** → **"Disk Management"**
+    - **Opción 2:** Presionar **`Windows + R`** → escribir `diskmgmt.msc` → Enter
+    - **Opción 3:** Clic derecho en **"This PC"** → **"Manage"** → en el panel izquierdo clic en **"Disk Management"**
+
+    Una vez abierto, hacer clic derecho en la barra del **disco C** → **"Shrink Volume"** → establecer el tamaño deseado para la nueva partición → **Shrink**.
 
 20. En el espacio no asignado resultante, hacer clic derecho → **"Nuevo volumen simple"** y seguir el asistente.
 
