@@ -1,3 +1,4 @@
+[Practica3_Seguridad_SO.md](https://github.com/user-attachments/files/26659409/Practica3_Seguridad_SO.md)
 <div align="center">
 
 # 🔐 Práctica 3 – Seguridad de Sistemas Operativos
@@ -18,6 +19,7 @@
 ## 📋 Tabla de Contenido
 
 - [🛡️ Punto A – GPO Credential Guard: habilitar seguridad basada en virtualización](#punto-a--gpo-credential-guard-habilitar-seguridad-basada-en-virtualización)
+- [⚙️ Punto B – Prerrequisitos de la VM cliente para Credential Guard](#punto-b--prerrequisitos-de-la-vm-cliente-para-credential-guard)
 - [🚫 Punto C – GPO Block USB: bloquear dispositivos de almacenamiento USB](#punto-c--gpo-block-usb-bloquear-dispositivos-de-almacenamiento-usb)
 
 ---
@@ -25,6 +27,7 @@
 ## 🛡️ Punto A – GPO Credential Guard: habilitar seguridad basada en virtualización
 
 ### Parte 1 – Crear la Unidad Organizativa y la GPO
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
 1. En el **Administrador del servidor**, ir a **Herramientas → Administración de directivas de grupo**.
 
@@ -41,6 +44,7 @@
 7. Hacer clic derecho sobre la GPO recién creada → seleccionar **Editar**.
 
 ### Parte 2 – Configurar la directiva de Credential Guard
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
 8. En el Editor de administración de directivas de grupo, navegar hasta:
     ```
@@ -64,6 +68,7 @@
 11. Hacer clic en **Aplicar → Aceptar**.
 
 ### Parte 3 – Aplicar la GPO en el servidor
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
 12. Abrir el **Símbolo del sistema (CMD)** como Administrador en el servidor y ejecutar:
     ```
@@ -72,6 +77,7 @@
     Esperar a que se apliquen los cambios de directiva.
 
 ### Parte 4 – Verificar Credential Guard en el cliente (Windows 10)
+> 💻 **Ejecutar en: Windows 10 Pro (Cliente del dominio)**
 
 13. En la VM cliente con **Windows 10 Pro**, abrir **PowerShell** como Administrador.
 
@@ -84,11 +90,91 @@
 
 > ✅ Credential Guard está habilitado y desplegado en los equipos del dominio `MiguelRM.local`.
 
+> ⚠️ **Importante:** Si el comando devuelve el error `HRESULT 0x80041013 – Error en la carga del proveedor`, significa que la VM cliente **no tiene los prerrequisitos de hardware virtual habilitados**. Ver [Punto B](#punto-b--prerrequisitos-de-la-vm-cliente-para-credential-guard) para solucionarlo.
+
+---
+
+## ⚙️ Punto B – Prerrequisitos de la VM cliente para Credential Guard
+
+> ℹ️ Este punto documenta la configuración necesaria en **VMware Workstation Pro 17** para que la VM cliente con Windows 10 Pro sea compatible con Credential Guard. Sin estos pasos, el comando de verificación del Punto A fallará.
+
+Credential Guard requiere tres condiciones en la VM cliente:
+- Firmware **UEFI** con Secure Boot habilitado
+- **TPM 2.0** virtual
+- **Virtualización anidada** (Nested Virtualization) habilitada
+
+### Parte 1 – Apagar la VM y eliminar snapshots
+> 🔧 **Ejecutar en: VMware Workstation (host físico)**
+
+1. Apagar completamente la VM cliente de Windows 10 (no suspender).
+
+2. En VMware, ir al menú **VM → Snapshots → Snapshot Manager**.
+
+3. Eliminar todos los snapshots existentes.
+
+> ⚠️ La encriptación de la VM no puede activarse mientras existan snapshots. Este paso es obligatorio.
+
+### Parte 2 – Encriptar la VM
+> 🔧 **Ejecutar en: VMware Workstation (host físico)**
+
+4. Con la VM apagada, abrir **Virtual Machine Settings → Options → Access Control**.
+
+5. Hacer clic en **Encrypt...** y asignar una contraseña segura.
+
+6. Confirmar la operación. La VM quedará cifrada.
+
+> ℹ️ El TPM virtual de VMware requiere que la VM esté encriptada para poder ser agregado.
+
+### Parte 3 – Cambiar el firmware a UEFI y habilitar Secure Boot
+> 🔧 **Ejecutar en: VMware Workstation (host físico)**
+
+7. En **Virtual Machine Settings → Options → Advanced**, cambiar el tipo de firmware a **UEFI**.
+
+8. Marcar la opción **"Enable secure boot"**.
+
+9. Hacer clic en **Aceptar**.
+
+### Parte 4 – Agregar el TPM virtual
+> 🔧 **Ejecutar en: VMware Workstation (host físico)**
+
+10. En **Virtual Machine Settings → Hardware**, hacer clic en **Add...**.
+
+11. Seleccionar **Trusted Platform Module** y hacer clic en **Finish**.
+
+> ✅ El módulo TPM aparecerá listado en el hardware de la VM.
+
+### Parte 5 – Habilitar virtualización anidada
+> 🔧 **Ejecutar en: VMware Workstation (host físico)**
+
+12. En **Virtual Machine Settings → Hardware → Processors**, marcar:
+    - ✅ **Virtualize Intel VT-x/EPT or AMD-V/RVI**
+    - ✅ **Virtualize IOMMU (IO memory management unit)**
+
+13. Hacer clic en **Aceptar** y encender la VM.
+
+### Parte 6 – Volver a aplicar la GPO en el cliente
+> 💻 **Ejecutar en: Windows 10 Pro (Cliente del dominio)**
+
+14. En el cliente Windows 10, abrir **CMD** como Administrador y ejecutar:
+    ```
+    gpupdate /force
+    ```
+
+15. Reiniciar el equipo cliente.
+
+16. Luego del reinicio, verificar nuevamente con PowerShell como Administrador:
+    ```powershell
+    Get-CimInstance -ClassName win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard
+    ```
+
+> ✅ Con los prerrequisitos correctamente configurados, el comando retornará las propiedades de Device Guard y `AvailableSecurityProperties` mostrará los valores `{5, 6}`.
+
 ---
 
 ## 🚫 Punto C – GPO Block USB: bloquear dispositivos de almacenamiento USB
 
 ### Parte 1 – Crear la GPO
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
 1. En la consola de **Administración de directivas de grupo**, expandir el dominio y localizar la unidad organizativa `Empresa`.
 
@@ -99,6 +185,7 @@
 4. Hacer clic derecho sobre la GPO recién creada → seleccionar **Editar**.
 
 ### Parte 2 – Configurar el bloqueo de USB
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
 5. En el Editor de administración de directivas de grupo, navegar hasta:
     ```
@@ -116,6 +203,7 @@
 > ⚠️ **Nota:** Esta directiva tiene prioridad sobre cualquier otra configuración individual de almacenamiento extraíble. Una vez habilitada, ningún dispositivo USB, disco extraíble ni tarjeta de memoria podrá ser leído ni escrito en los equipos del dominio.
 
 ### Parte 3 – Aplicar la GPO
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
 8. Abrir el **Símbolo del sistema (CMD)** como Administrador y ejecutar:
     ```
@@ -127,4 +215,4 @@
 
 ---
 
-> **Nota:** Toda la práctica fue realizada en un entorno virtualizado con VMware Workstation Pro 17, utilizando Windows Server 2022 como controlador de dominio y Windows 10 Pro como cliente del dominio.
+> **Nota:** Toda la práctica fue realizada en un entorno virtualizado con VMware Workstation Pro 17, utilizando Windows Server 2022 como controlador de dominio y Windows 10 Pro como cliente del dominio. La VM cliente requiere firmware UEFI, TPM 2.0 virtual, Secure Boot y virtualización anidada habilitados para que Credential Guard funcione correctamente.
