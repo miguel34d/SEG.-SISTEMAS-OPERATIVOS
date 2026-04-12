@@ -1,4 +1,4 @@
-[Practica4_Seguridad_SO.md](https://github.com/user-attachments/files/26659827/Practica4_Seguridad_SO.md)
+[Practica4_Seguridad_SO (1).md](https://github.com/user-attachments/files/26659868/Practica4_Seguridad_SO.1.md)
 <div align="center">
 
 # 🔐 Práctica 4 – Seguridad de Sistemas Operativos
@@ -20,6 +20,7 @@
 
 - [🔏 Punto A – Habilitar DNSSEC en una zona de búsqueda del dominio](#punto-a--habilitar-dnssec-en-una-zona-de-búsqueda-del-dominio)
 - [📡 Punto B – Propagar la configuración de DNSSEC a los clientes mediante GPO](#punto-b--propagar-la-configuración-de-dnssec-a-los-clientes-mediante-gpo)
+- [✅ Comprobación – Verificar que DNSSEC fue aplicado correctamente](#comprobación--verificar-que-dnssec-fue-aplicado-correctamente)
 
 ---
 
@@ -77,14 +78,50 @@
 
 16. Verificar que la ZSK aparezca en la tabla y hacer clic en **Siguiente**.
 
-### Parte 4 – Finalizar la firma
+### Parte 4 – Configurar NSEC3
 > 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
-17. Hacer clic en **Siguiente** en las pantallas restantes hasta llegar a la confirmación.
+17. En la pantalla **"Next Secure (NSEC)"**, seleccionar **"Use NSEC3"** (ya seleccionado por defecto) y dejar los valores por defecto:
 
-18. Esperar a que el asistente complete el proceso. Cuando aparezca el mensaje **"La zona se firmó correctamente"**, hacer clic en **Finalizar**.
+    | Parámetro | Valor |
+    |---|---|
+    | Iterations | 50 |
+    | Generate and use a random salt of length | 8 |
 
-19. En el Administrador de DNS, hacer clic derecho sobre `MiguelRM.local` → **Actualizar**. Se visualizarán los nuevos registros DNSSEC (`RRSIG`, `DNSKEY`, `NSEC3`, `DS`) generados por la firma.
+18. Hacer clic en **Next >**.
+
+### Parte 5 – Configurar Trust Anchors
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
+
+19. En la pantalla **"Trust Anchors (TAs)"**, marcar ambas casillas:
+    - ✅ **Enable the distribution of trust anchors for this zone**
+    - ✅ **Enable automatic update of trust anchors on key rollover (RFC 5011)**
+
+20. Hacer clic en **Next >**.
+
+### Parte 6 – Signing and Polling Parameters
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
+
+21. En la pantalla **"Signing and Polling Parameters"**, dejar todos los valores por defecto:
+
+    | Parámetro | Valor |
+    |---|---|
+    | DS record generation algorithm | SHA-1 and SHA-256 |
+    | DS record TTL (seconds) | 3600 |
+    | DNSKEY record TTL (seconds) | 3600 |
+    | Secure delegation polling period (hours) | 12 |
+    | Signature inception (hours) | 1 |
+
+22. Hacer clic en **Next >**.
+
+### Parte 7 – Finalizar la firma
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
+
+23. Revisar el resumen y hacer clic en **Next >** para iniciar la firma.
+
+24. Esperar a que el asistente complete el proceso. Cuando aparezca el mensaje **"La zona se firmó correctamente"**, hacer clic en **Finalizar**.
+
+25. En el Administrador de DNS, hacer clic derecho sobre `MiguelRM.local` → **Actualizar**. Se visualizarán los nuevos registros DNSSEC (`RRSIG`, `DNSKEY`, `NSEC3`, `DS`) generados por la firma.
 
 > ✅ La zona `MiguelRM.local` está firmada con DNSSEC. El estado cambiará de **"Not Signed"** a **"Signed"** en la lista de zonas.
 
@@ -165,3 +202,46 @@
 ---
 
 > **Nota:** Toda la práctica fue realizada en un entorno virtualizado con VMware Workstation Pro 17, utilizando Windows Server 2022 como controlador de dominio y Windows 10 Pro como cliente del dominio. El equipo cliente debe estar dentro de la OU `Empresa` en Active Directory para que las GPOs sean aplicadas correctamente.
+
+---
+
+## ✅ Comprobación – Verificar que DNSSEC fue aplicado correctamente
+
+### En el servidor – Verificar registros DNSSEC
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
+
+1. Abrir el **Administrador de DNS** → **Forward Lookup Zones** → `MiguelRM.local`.
+
+2. Verificar que existan los siguientes tipos de registros en la zona:
+
+    | Registro | Descripción |
+    |---|---|
+    | `RRSIG` | Firma digital de los registros DNS |
+    | `DNSKEY` | Claves públicas KSK y ZSK |
+    | `NSEC3` | Prueba de no existencia autenticada |
+    | `DS` | Delegación de firma hacia la zona padre |
+
+3. Verificar que en la lista de zonas el estado de `MiguelRM.local` muestre **"Signed"** en la columna DNSSEC Status.
+
+4. Desde **PowerShell** como Administrador, ejecutar:
+    ```powershell
+    Resolve-DnsName -Name MiguelRM.local -Type DNSKEY -Server 127.0.0.1
+    ```
+    Debe retornar los registros DNSKEY de la zona firmada.
+
+### En el cliente – Verificar que la GPO DNSSEC fue aplicada
+> 💻 **Ejecutar en: Windows 10 Pro (Cliente del dominio)**
+
+5. Abrir **CMD** como Administrador y ejecutar:
+    ```cmd
+    gpresult /r
+    ```
+    Confirmar que `DNSSEC` aparece bajo **"Directivas de equipo aplicadas"**.
+
+6. Verificar la resolución DNS con validación DNSSEC ejecutando en PowerShell:
+    ```powershell
+    Resolve-DnsName -Name MiguelRM.local -Type A -DnssecOk
+    ```
+    Si la respuesta incluye registros `RRSIG`, DNSSEC está funcionando correctamente en el cliente.
+
+> ✅ DNSSEC está habilitado, firmado y propagado correctamente a los clientes del dominio `MiguelRM.local`.
