@@ -1,3 +1,4 @@
+[Practica4_Seguridad_SO.md](https://github.com/user-attachments/files/26659827/Practica4_Seguridad_SO.md)
 <div align="center">
 
 # 🔐 Práctica 4 – Seguridad de Sistemas Operativos
@@ -25,22 +26,28 @@
 ## 🔏 Punto A – Habilitar DNSSEC en una zona de búsqueda del dominio
 
 ### Parte 1 – Abrir el Administrador de DNS y firmar la zona
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
 1. En el **Administrador del servidor**, ir a **Herramientas → DNS**.
 
-2. En el Administrador de DNS, hacer clic derecho sobre el dominio `MiguelRM.local` en el árbol de la izquierda. El submenú aparecerá con la opción **DNSSEC** en gris (no seleccionable aún).
+2. En el Administrador de DNS, expandir el servidor y luego **Forward Lookup Zones**. Hacer clic derecho sobre la zona `MiguelRM.local`.
 
-3. Para activar la opción, seleccionar **Actualizar** en el mismo submenú.
+3. Si la opción **DNSSEC** aparece en gris, seleccionar **Actualizar** en el mismo submenú y volver a intentarlo.
 
-4. Hacer clic derecho nuevamente sobre el dominio → **DNSSEC → Firmar la zona**.
+4. Hacer clic derecho sobre `MiguelRM.local` → **DNSSEC → Firmar la zona**.
 
-5. Se desplegará el **Asistente para firmar zona**. Hacer clic en **Siguiente**.
+5. Se desplegará el **Asistente para firmar zona**. Seleccionar **"Customize zone signing parameters"** y hacer clic en **Siguiente**.
+
+6. En la pantalla **Key Master**, seleccionar **"The DNS server MIGUEL is the Key Master"** y hacer clic en **Siguiente**.
 
 ### Parte 2 – Configurar la Clave de Firma de Clave (KSK)
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
-6. Hacer clic en **Siguiente** hasta llegar a la pantalla **"Clave de firma de clave (KSK)"**.
+7. En la pantalla informativa de KSK, hacer clic en **Siguiente**.
 
-7. Hacer clic en **Agregar**. Se desplegará el formulario de nueva KSK con los siguientes valores a configurar:
+8. En la pantalla **"Key Signing Key (KSK) – Configure one or more KSKs"**, hacer clic en **Add**.
+
+9. En el formulario, configurar los siguientes valores:
 
     | Parámetro | Valor por defecto | Valor a usar |
     |---|---|---|
@@ -48,36 +55,45 @@
     | Longitud de clave (bits) | 2048 | 2048 (sin cambio) |
     | Frecuencia de sustitución (días) | 755 | **100** |
 
-8. Cambiar la **Frecuencia de sustitución (días)** de `755` a `100`. Hacer clic en **Aceptar**.
+10. Cambiar la **Frecuencia de sustitución (días)** de `755` a `100`. Hacer clic en **Aceptar**.
+
+11. Verificar que la KSK aparezca en la tabla y hacer clic en **Siguiente**.
 
 ### Parte 3 – Configurar la Clave de Firma de Zona (ZSK)
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
-9. Hacer clic en **Siguiente** hasta llegar a la pantalla **"Clave de firmas de zona (ZSK)"**.
+12. En la pantalla informativa de ZSK, hacer clic en **Siguiente**.
 
-10. Hacer clic en **Agregar**. Se desplegará el formulario de nueva ZSK con los siguientes valores a configurar:
+13. En la pantalla **"Zone Signing Key (ZSK) – Configure one or more ZSKs"**, hacer clic en **Add**.
+
+14. En el formulario, configurar los siguientes valores:
 
     | Parámetro | Valor por defecto | Valor a usar |
     |---|---|---|
     | Longitud de clave (bits) | 1024 | **2048** |
     | Frecuencia de sustitución (días) | 90 | **100** |
 
-11. Cambiar la **Longitud de clave** de `1024` a `2048` y la **Frecuencia de sustitución** de `90` a `100`. Hacer clic en **Aceptar**.
+15. Cambiar la **Longitud de clave** de `1024` a `2048` y la **Frecuencia de sustitución** de `90` a `100`. Hacer clic en **Aceptar**.
+
+16. Verificar que la ZSK aparezca en la tabla y hacer clic en **Siguiente**.
 
 ### Parte 4 – Finalizar la firma
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
-12. Hacer clic en **Siguiente** hasta llegar a la pantalla de confirmación **"Firmando la zona"**.
+17. Hacer clic en **Siguiente** en las pantallas restantes hasta llegar a la confirmación.
 
-13. Esperar a que el asistente complete el proceso. Cuando aparezca el mensaje **"La zona se firmó correctamente"**, hacer clic en **Finalizar**.
+18. Esperar a que el asistente complete el proceso. Cuando aparezca el mensaje **"La zona se firmó correctamente"**, hacer clic en **Finalizar**.
 
-14. En el Administrador de DNS, hacer clic derecho sobre el dominio → **Actualizar**. Se visualizarán los nuevos registros DNSSEC (`RRSIG`, `DNSKEY`, `NSEC3`, `DS`) generados por la firma.
+19. En el Administrador de DNS, hacer clic derecho sobre `MiguelRM.local` → **Actualizar**. Se visualizarán los nuevos registros DNSSEC (`RRSIG`, `DNSKEY`, `NSEC3`, `DS`) generados por la firma.
 
-> ✅ La zona `MiguelRM.local` está firmada con DNSSEC. El estado de DNSSEC cambiará de "Sin firma" a "Firmada" en la lista de zonas.
+> ✅ La zona `MiguelRM.local` está firmada con DNSSEC. El estado cambiará de **"Not Signed"** a **"Signed"** en la lista de zonas.
 
 ---
 
 ## 📡 Punto B – Propagar la configuración de DNSSEC a los clientes mediante GPO
 
 ### Parte 1 – Crear la GPO DNSSEC
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
 1. En el **Administrador del servidor**, ir a **Herramientas → Administración de directivas de grupo**.
 
@@ -90,6 +106,7 @@
 5. Hacer clic derecho sobre la GPO recién creada → **Editar**.
 
 ### Parte 2 – Configurar la Directiva de Resolución de Nombres
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
 6. En el Editor de administración de directivas de grupo, navegar hasta:
     ```
@@ -108,7 +125,7 @@
 
 8. En el campo **"Entidad de certificación (Opcional)"**, hacer clic en **Examinar**.
 
-9. En el recuadro de certificados que aparece, seleccionar el certificado disponible (DigiCert) y hacer clic en **Aceptar**.
+9. En el recuadro de certificados que aparece, seleccionar el certificado disponible y hacer clic en **Aceptar**.
 
 10. Marcar la casilla **"Habilitar DNSSEC en esta regla"**.
 
@@ -120,7 +137,8 @@
 
 13. Hacer clic en **Aplicar** en la parte inferior del panel.
 
-### Parte 3 – Aplicar la GPO
+### Parte 3 – Aplicar la GPO en el servidor
+> 🖥️ **Ejecutar en: Windows Server 2022 (Controlador de Dominio)**
 
 14. Abrir el **Símbolo del sistema (CMD)** como Administrador y ejecutar:
     ```
@@ -128,8 +146,22 @@
     ```
     Esperar a que se complete la actualización de directivas.
 
+### Parte 4 – Aplicar la GPO en el cliente
+> 💻 **Ejecutar en: Windows 10 Pro (Cliente del dominio)**
+
+15. Abrir el **Símbolo del sistema (CMD)** como Administrador y ejecutar:
+    ```
+    gpupdate /force
+    ```
+
+16. Verificar que la directiva DNSSEC fue aplicada ejecutando:
+    ```cmd
+    gpresult /r
+    ```
+    Confirmar que `DNSSEC` aparece en la lista de **directivas de equipo aplicadas**.
+
 > ✅ La GPO DNSSEC está configurada y desplegada. Los clientes del dominio dentro de la OU `Empresa` validarán las respuestas DNS mediante firmas DNSSEC y usarán IPsec para cifrar la comunicación con el servidor DNS.
 
 ---
 
-> **Nota:** Toda la práctica fue realizada en un entorno virtualizado con VMware Workstation Pro 17, utilizando Windows Server 2022 como controlador de dominio y Windows 10 Pro como cliente del dominio.
+> **Nota:** Toda la práctica fue realizada en un entorno virtualizado con VMware Workstation Pro 17, utilizando Windows Server 2022 como controlador de dominio y Windows 10 Pro como cliente del dominio. El equipo cliente debe estar dentro de la OU `Empresa` en Active Directory para que las GPOs sean aplicadas correctamente.
